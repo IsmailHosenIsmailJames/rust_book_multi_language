@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -105,6 +106,7 @@ class WebViewInAppState extends State<WebViewInApp> {
 
   @override
   void initState() {
+    FlutterNativeSplash.remove();
     super.initState();
     contextMenu = ContextMenu(
       menuItems: [

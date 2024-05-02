@@ -25,7 +25,7 @@ List<Map<String, dynamic>> zipFilesWithInfo = [
   },
   {
     "link":
-        "https://firebasestorage.googleapis.com/v0/b/ismailhosenismailjames.appspot.com/o/Farsi.zip?alt=media&token=cdb62c34-2183-4574-9100-ec3da839ea49",
+        "https://firebasestorage.googleapis.com/v0/b/ismailhosenismailjames.appspot.com/o/Farsi.zip?alt=media&token=d20bf90f-4162-44c7-aac0-793ea0103212",
     "language": "Farsi",
     "isComplete": false
   },
