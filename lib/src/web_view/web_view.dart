@@ -1,16 +1,10 @@
 import 'dart:collection';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:rust_book/src/web_view/show_toawest_massage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:path/path.dart' as path;
-
-import 'list_of_html_files.dart';
 
 class WebViewInApp extends StatefulWidget {
   final String initialRoute;
@@ -36,7 +30,6 @@ class WebViewInAppState extends State<WebViewInApp> {
   PullToRefreshController? pullToRefreshController;
 
   late ContextMenu contextMenu;
-  String url = "";
   double progress = 0;
   Widget initWiget = const Center(
     child: CircularProgressIndicator(),
@@ -44,7 +37,6 @@ class WebViewInAppState extends State<WebViewInApp> {
 
   void initLastWebUrl() async {
     String initUrl = widget.initialRoute;
-    makeAppBarTitle(initUrl);
     setState(() {
       initWiget = InAppWebView(
         key: webViewKey,
@@ -61,14 +53,10 @@ class WebViewInAppState extends State<WebViewInApp> {
           webViewController = controller;
         },
         onLoadStart: (controller, url) async {
-          setState(() {
-            this.url = url.toString();
-          });
           final SharedPreferences prefs = await SharedPreferences.getInstance();
           if (url != null) {
             await prefs.setString("last_url", url.toString());
           }
-          makeAppBarTitle(url.toString());
         },
         onPermissionRequest: (controller, request) async {
           return PermissionResponse(
@@ -99,12 +87,7 @@ class WebViewInAppState extends State<WebViewInApp> {
 
           return NavigationActionPolicy.ALLOW;
         },
-        onLoadStop: (controller, url) async {
-          pullToRefreshController?.endRefreshing();
-          setState(() {
-            this.url = url.toString();
-          });
-        },
+
         onReceivedError: (controller, request, error) {
           pullToRefreshController?.endRefreshing();
         },
@@ -116,12 +99,6 @@ class WebViewInAppState extends State<WebViewInApp> {
             this.progress = progress / 100;
           });
         },
-        onUpdateVisitedHistory: (controller, url, isReload) {
-          setState(() {
-            this.url = url.toString();
-          });
-        },
-        onConsoleMessage: (controller, consoleMessage) {},
       );
     });
   }
@@ -165,39 +142,6 @@ class WebViewInAppState extends State<WebViewInApp> {
     initLastWebUrl();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  String appBarTitile = "";
-
-  void makeAppBarTitle(String url) {
-    if (url.startsWith("file")) {
-      List partsOfURL = url.split("/");
-      List toBeShow = partsOfURL.sublist(6);
-      String showString = toBeShow.toString();
-      showString = showString
-          .replaceAll(" ", "")
-          .replaceAll("[", "")
-          .replaceAll("]", "")
-          .replaceAll(",", "/");
-      setState(() {
-        appBarTitile = showString;
-      });
-    } else {
-      setState(() {
-        appBarTitile = url;
-      });
-    }
-    setState(() {
-      showSearchBar = false;
-      appBarSeacrchIcon = Icons.search;
-    });
-  }
-
-  TextEditingController searchController = TextEditingController();
-  TextEditingValue textEditingValue = const TextEditingValue();
   bool showSearchBar = false;
   IconData appBarSeacrchIcon = Icons.search;
   @override
@@ -213,58 +157,7 @@ class WebViewInAppState extends State<WebViewInApp> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 65,
-          title: showSearchBar
-              ? Autocomplete<String>(
-                  optionsMaxHeight: 500,
-                  fieldViewBuilder: (context, textEditingController, focusNode,
-                      onFieldSubmitted) {
-                    return TextField(
-                      controller: textEditingController,
-                      focusNode: focusNode,
-                      onEditingComplete: onFieldSubmitted,
-                      decoration: InputDecoration(
-                          hintText: "Search document",
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(100))),
-                    );
-                  },
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text == '') {
-                      return const Iterable<String>.empty();
-                    }
-                    return allHTMLFilesPathSorted.where((String option) {
-                      return option
-                          .contains(textEditingValue.text.toLowerCase());
-                    });
-                  },
-                  onSelected: (String selection) async {
-                    Directory docDir = await getApplicationDocumentsDirectory();
-                    Uri uriFilePath = Uri.file(path.join(
-                        docDir.path, widget.language, "book", selection));
-                    print("object- : ${uriFilePath.path}");
-                    webViewController?.loadUrl(
-                        urlRequest: URLRequest(url: WebUri(uriFilePath.path)));
-                  },
-                )
-              : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal, child: Text(appBarTitile)),
-          actions: [
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  showSearchBar = !showSearchBar;
-                  appBarSeacrchIcon = showSearchBar
-                      ? Icons.arrow_forward_ios_rounded
-                      : Icons.search;
-                });
-              },
-              icon: Icon(appBarSeacrchIcon),
-            ),
-          ],
-        ),
-        // drawer: Drawer(),
+        backgroundColor: Colors.grey,
         body: SafeArea(
           child: Column(
             children: <Widget>[
@@ -277,86 +170,6 @@ class WebViewInAppState extends State<WebViewInApp> {
                         : Container(),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          backgroundColor: const Color.fromARGB(70, 50, 50, 50),
-          onPressed: () {},
-          label: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () async {
-                  await webViewController?.goBack();
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: () async {
-                  await webViewController?.goForward();
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () async {
-                  await webViewController?.reload();
-                },
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.home,
-                ),
-                onPressed: () async {
-                  final SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  String homePage = prefs.getString("home_page") ??
-                      "file:///android_asset/flutter_assets/assets/index.html";
-                  await webViewController?.loadUrl(
-                    urlRequest: URLRequest(
-                      url: WebUri(homePage),
-                    ),
-                  );
-                },
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: const Row(
-                      children: [
-                        Text(
-                          "Set as your Home page",
-                        ),
-                      ],
-                    ),
-                    onTap: () async {
-                      final webUri = await webViewController?.getUrl();
-                      String currentURL = webUri.toString();
-                      final SharedPreferences prefs =
-                          await SharedPreferences.getInstance();
-                      await prefs.setString("home_page", currentURL);
-                      showToast("Set this as your Home page done.");
-                    },
-                  ),
-                  PopupMenuItem(
-                    child: const Row(
-                      children: [
-                        Text(
-                          "Go to defult home page",
-                        ),
-                      ],
-                    ),
-                    onTap: () async {
-                      webViewController?.loadUrl(
-                        urlRequest: URLRequest(
-                          url: WebUri(
-                              "file:///android_asset/flutter_assets/assets/index.html"),
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ),
             ],
           ),
