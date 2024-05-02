@@ -1,13 +1,18 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:rust_book/src/download/choice_language/all_zip_info.dart';
 import 'package:rust_book/src/download/choice_language/choice_language.dart';
 import 'package:rust_book/src/download/getzip/get_zip.dart';
 import 'package:rust_book/src/web_view/web_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as path;
 
 final localhostServer =
     InAppLocalhostServer(documentRoot: 'assets', port: 1502);
@@ -32,27 +37,30 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      darkTheme: ThemeData.dark(useMaterial3: true)
+          .copyWith(colorScheme: ColorScheme.fromSeed(seedColor: Colors.green)),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(),
+      home: const InitRoute(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class InitRoute extends StatefulWidget {
+  const InitRoute({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<InitRoute> createState() => _InitRouteState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _InitRouteState extends State<InitRoute> {
   Future<void> autoRoute() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final data = prefs.getString("language");
-    if (data == null) {
+    String? language = prefs.getString("language");
+    if (language == null) {
       FlutterNativeSplash.remove();
       Navigator.pushAndRemoveUntil(
           context,
@@ -61,37 +69,47 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           (route) => false);
     } else {
+      language = languageList.indexOf(language).toString();
       final isDownloaded = prefs.getBool("isDownloaded");
+      final link = prefs.getString("zipLink");
       FlutterNativeSplash.remove();
 
       if (isDownloaded == null) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => GetZipFile(language: data),
+              builder: (context) => GetZipFile(
+                language: language!,
+                urlOfZip: link!,
+              ),
             ),
             (route) => false);
       } else {
-        final initUrl = prefs.getString("last_url");
+        Directory docDir = await getApplicationDocumentsDirectory();
+        String? initUrl = prefs.getString("last_url");
         if (initUrl != null) {
-          FlutterNativeSplash.remove();
-
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder: (context) => WebViewInApp(initialRoute: initUrl),
+                builder: (context) => WebViewInApp(
+                  initialRoute: initUrl,
+                  language: language!,
+                ),
               ),
               (route) => false);
         } else {
-          // TODO
-          // get initial url using language selected
-          String initUrl = "//TODO";
-          FlutterNativeSplash.remove();
+          String indexPath =
+              path.join(docDir.path, language, "book/index.html");
+          Uri uriPath = Uri.file(indexPath);
+          await prefs.setString("last_url", uriPath.path);
 
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder: (context) => WebViewInApp(initialRoute: initUrl),
+                builder: (context) => WebViewInApp(
+                  initialRoute: indexPath,
+                  language: language!,
+                ),
               ),
               (route) => false);
         }

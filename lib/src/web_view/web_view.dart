@@ -1,17 +1,22 @@
 import 'dart:collection';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rust_book/src/web_view/show_toawest_massage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as path;
 
 import 'list_of_html_files.dart';
 
 class WebViewInApp extends StatefulWidget {
   final String initialRoute;
-  const WebViewInApp({super.key, required this.initialRoute});
+  final String language;
+  const WebViewInApp(
+      {super.key, required this.initialRoute, required this.language});
 
   @override
   WebViewInAppState createState() => WebViewInAppState();
@@ -38,9 +43,7 @@ class WebViewInAppState extends State<WebViewInApp> {
   );
 
   void initLastWebUrl() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String initUrl = prefs.getString("last_url") ??
-        "file:///android_asset/flutter_assets/assets/index.html";
+    String initUrl = widget.initialRoute;
     makeAppBarTitle(initUrl);
     setState(() {
       initWiget = InAppWebView(
@@ -236,11 +239,13 @@ class WebViewInAppState extends State<WebViewInApp> {
                           .contains(textEditingValue.text.toLowerCase());
                     });
                   },
-                  onSelected: (String selection) {
+                  onSelected: (String selection) async {
+                    Directory docDir = await getApplicationDocumentsDirectory();
+                    Uri uriFilePath = Uri.file(path.join(
+                        docDir.path, widget.language, "book", selection));
+                    print("object- : ${uriFilePath.path}");
                     webViewController?.loadUrl(
-                        urlRequest: URLRequest(
-                            url: WebUri(
-                                "file:///android_asset/flutter_assets/assets/$selection")));
+                        urlRequest: URLRequest(url: WebUri(uriFilePath.path)));
                   },
                 )
               : SingleChildScrollView(

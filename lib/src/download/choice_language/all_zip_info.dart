@@ -84,3 +84,20 @@ List<Map<String, dynamic>> zipFilesWithInfo = [
     "isComplete": true
   },
 ];
+
+List<String> languageList = [
+  "Danske",
+  "Deutsch",
+  "English",
+  "Esperanto",
+  "Farsi",
+  "Français",
+  "Polski",
+  "Português",
+  "Svenska",
+  "Русский",
+  "Українська",
+  "正體中文",
+  "简体中文",
+  "한국어",
+];

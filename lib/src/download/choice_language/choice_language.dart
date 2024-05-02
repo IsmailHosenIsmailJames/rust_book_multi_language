@@ -1,5 +1,8 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:rust_book/src/download/choice_language/all_zip_info.dart';
+import 'package:rust_book/src/download/getzip/get_zip.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChoiceLanguage extends StatefulWidget {
   const ChoiceLanguage({super.key});
@@ -15,7 +18,7 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor:
-            const Color.fromARGB(255, 151, 255, 203).withOpacity(0.6),
+            const Color.fromARGB(255, 103, 177, 140).withOpacity(0.6),
         title: const Center(
           child: Text(
             "Select A Language",
@@ -31,7 +34,7 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color.fromARGB(255, 151, 255, 203).withOpacity(0.6),
+              const Color.fromARGB(255, 103, 177, 140).withOpacity(0.6),
               const Color.fromARGB(255, 136, 103, 255).withOpacity(0.6)
             ],
           ),
@@ -39,9 +42,6 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
         child: SafeArea(
           child: Column(
             children: [
-              const Divider(
-                thickness: 2,
-              ),
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(20),
@@ -86,10 +86,10 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
                                 onPressed: () {
                                   showDialog(
                                     context: context,
-                                    builder: (context) => Dialog(
-                                      child: Container(
+                                    builder: (context) => const Dialog(
+                                      child: SizedBox(
                                         height: 200,
-                                        child: const Padding(
+                                        child: Padding(
                                           padding: EdgeInsets.all(8.0),
                                           child: Center(
                                             child: Text(
@@ -115,6 +115,62 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
               ),
             ],
           ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          String lan = zipFilesWithInfo[selectedValue]['language'];
+          String url = zipFilesWithInfo[selectedValue]['link'];
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+          final List<ConnectivityResult> connectivityResult =
+              await (Connectivity().checkConnectivity());
+          if (connectivityResult.contains(ConnectivityResult.mobile) ||
+              connectivityResult.contains(ConnectivityResult.bluetooth) ||
+              connectivityResult.contains(ConnectivityResult.wifi) ||
+              connectivityResult.contains(ConnectivityResult.vpn)) {
+            await prefs.setString("zipLink", url);
+            await prefs.setString("language", lan);
+            Navigator.pushAndRemoveUntil(
+                // ignore: use_build_context_synchronously
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GetZipFile(
+                      language: languageList.indexOf(lan).toString(),
+                      urlOfZip: url),
+                ),
+                (route) => false);
+          } else {
+            showDialog(
+              // ignore: use_build_context_synchronously
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text("Need internet connection."),
+                content: const Text(
+                    "This application will get download Rust Book in your selected language. So, in this step only, this application need internet connection. Please enable your internet connection"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+        label: const Row(
+          children: [
+            Text(
+              "NEXT ",
+              style: TextStyle(fontSize: 16),
+            ),
+            Icon(
+              Icons.arrow_forward,
+              size: 18,
+            ),
+          ],
         ),
       ),
     );
