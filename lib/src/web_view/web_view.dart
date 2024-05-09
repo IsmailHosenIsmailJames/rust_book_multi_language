@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class WebViewInApp extends StatefulWidget {
   final String initialRoute;
@@ -63,30 +62,6 @@ class WebViewInAppState extends State<WebViewInApp> {
           return PermissionResponse(
               resources: request.resources,
               action: PermissionResponseAction.GRANT);
-        },
-        shouldOverrideUrlLoading: (controller, navigationAction) async {
-          var uri = navigationAction.request.url!;
-
-          if (![
-            "http",
-            "https",
-            "file",
-            "chrome",
-            "data",
-            "javascript",
-            "about"
-          ].contains(uri.scheme)) {
-            if (await canLaunchUrl(uri)) {
-              // Launch the App
-              await launchUrl(
-                uri,
-              );
-              // and cancel the request
-              return NavigationActionPolicy.CANCEL;
-            }
-          }
-
-          return NavigationActionPolicy.ALLOW;
         },
 
         onReceivedError: (controller, request, error) {

@@ -19,6 +19,12 @@ List<Map<String, dynamic>> zipFilesWithInfo = [
   },
   {
     "link":
+        "https://firebasestorage.googleapis.com/v0/b/ismailhosenismailjames.appspot.com/o/espanish.zip?alt=media&token=d49d09a0-d45e-49e8-aecd-1e816a3da5bc",
+    "language": "Español",
+    "isComplete": true
+  },
+  {
+    "link":
         "https://firebasestorage.googleapis.com/v0/b/ismailhosenismailjames.appspot.com/o/Esperanto.zip?alt=media&token=024ab21d-f036-4eb3-ae30-96177753a272",
     "language": "Esperanto",
     "isComplete": true
@@ -89,6 +95,7 @@ List<String> languageList = [
   "Danske",
   "Deutsch",
   "English",
+  "Español",
   "Esperanto",
   "Farsi",
   "Français",
