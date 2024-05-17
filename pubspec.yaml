@@ -31,6 +31,9 @@ dependencies:
   connectivity_plus: ^6.0.3
   http: ^1.2.1
   path: ^1.9.0
+  searchfield: ^1.0.1
+  fluentui_system_icons: ^1.1.238
+  dropdown_search: ^5.0.6
 
 dev_dependencies:
   flutter_test:

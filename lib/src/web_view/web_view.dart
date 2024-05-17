@@ -1,9 +1,13 @@
 import 'dart:collection';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:searchfield/searchfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WebViewInApp extends StatefulWidget {
@@ -134,7 +138,53 @@ class WebViewInAppState extends State<WebViewInApp> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.grey,
+        appBar: AppBar(
+          titleSpacing: 0,
+          toolbarHeight: 40,
+          title: Row(
+            children: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  FluentIcons.home_24_regular,
+                ),
+              ),
+              Expanded(
+                  child: DropdownSearch<String>(
+                popupProps: PopupProps.menu(
+                  showSelectedItems: true,
+                  disabledItemFn: (String s) => s.startsWith('I'),
+                ),
+                items: ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    labelText: "Menu mode",
+                    hintText: "country in menu mode",
+                  ),
+                ),
+                onChanged: print,
+                selectedItem: "Brazil",
+              )),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.arrow_back,
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.arrow_forward,
+                ),
+              ),
+              PopupMenuButton(
+                itemBuilder: (context) {
+                  return [];
+                },
+              ),
+            ],
+          ),
+        ),
         body: SafeArea(
           child: Column(
             children: <Widget>[
