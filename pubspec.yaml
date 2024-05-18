@@ -7,7 +7,7 @@ description: Demonstrates how to use the flutter_inappwebview plugin.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Read more about versioning at semver.org.
-version: 2.1.0+6
+version: 2.2.1+7
 
 publish_to: none
 
@@ -47,7 +47,7 @@ dev_dependencies:
 #    git:
 #      url: https://github.com/flutter/plugins.git
 #      path: packages/integration_test
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 
 flutter_launcher_icons:
