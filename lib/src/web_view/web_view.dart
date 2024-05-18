@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'package:dropdown_search/dropdown_search.dart';
+import 'dart:io';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -7,14 +7,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:searchfield/searchfield.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as path;
+
+import '../download/choice_language/all_zip_info.dart';
 
 class WebViewInApp extends StatefulWidget {
+  final List<String> htmls;
   final String initialRoute;
   final String language;
   const WebViewInApp(
-      {super.key, required this.initialRoute, required this.language});
+      {super.key,
+      required this.initialRoute,
+      required this.language,
+      required this.htmls});
 
   @override
   WebViewInAppState createState() => WebViewInAppState();
@@ -123,8 +130,6 @@ class WebViewInAppState extends State<WebViewInApp> {
     initLastWebUrl();
   }
 
-  bool showSearchBar = false;
-  IconData appBarSeacrchIcon = Icons.search;
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -140,47 +145,176 @@ class WebViewInAppState extends State<WebViewInApp> {
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: 0,
-          toolbarHeight: 40,
+          toolbarHeight: 43,
           title: Row(
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () async {
+                  final SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  String? language = prefs.getString("language");
+                  language = languageList.indexOf(language!).toString();
+                  Directory docDir = await getApplicationDocumentsDirectory();
+                  String? home = prefs.getString("home");
+                  if (home == null) {
+                    String indexPath =
+                        path.join(docDir.path, language, "book/index.html");
+
+                    webViewController?.loadUrl(
+                      urlRequest: URLRequest(
+                        url: WebUri(indexPath),
+                      ),
+                    );
+                  } else {
+                    webViewController?.loadUrl(
+                      urlRequest: URLRequest(
+                        url: WebUri(home),
+                      ),
+                    );
+                  }
+                },
                 icon: const Icon(
                   FluentIcons.home_24_regular,
                 ),
               ),
               Expanded(
-                  child: DropdownSearch<String>(
-                popupProps: PopupProps.menu(
-                  showSelectedItems: true,
-                  disabledItemFn: (String s) => s.startsWith('I'),
+                child: Autocomplete<String>(
+                  optionsMaxHeight: 380,
+                  fieldViewBuilder: (context, textEditingController, focusNode,
+                      onFieldSubmitted) {
+                    return SizedBox(
+                      height: 38,
+                      child: CupertinoSearchTextField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                      ),
+                    );
+                  },
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text == '') {
+                      return const Iterable<String>.empty();
+                    }
+                    return widget.htmls.where((String option) {
+                      return option
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase());
+                    });
+                  },
+                  onSelected: (String selection) async {
+                    final SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    Directory docDir = await getApplicationDocumentsDirectory();
+                    String? language = prefs.getString("language");
+                    language = languageList.indexOf(language!).toString();
+                    String indexPath = path.join(
+                      docDir.path,
+                      language,
+                      "book",
+                      selection,
+                    );
+                    webViewController?.loadUrl(
+                      urlRequest: URLRequest(
+                        url: WebUri(
+                          indexPath,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                items: ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    labelText: "Menu mode",
-                    hintText: "country in menu mode",
+              ),
+              const SizedBox(
+                width: 5,
+              ),
+              SizedBox(
+                height: 30,
+                width: 30,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () async {
+                    if (await webViewController!.canGoBack()) {
+                      webViewController!.goBack();
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back,
                   ),
                 ),
-                onChanged: print,
-                selectedItem: "Brazil",
-              )),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.arrow_back,
+              ),
+              SizedBox(
+                height: 30,
+                width: 30,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () async {
+                    if (await webViewController!.canGoForward()) {
+                      webViewController!.goForward();
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.arrow_forward,
+                  ),
                 ),
               ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.arrow_forward,
+              SizedBox(
+                height: 30,
+                width: 40,
+                child: PopupMenuButton(
+                  padding: EdgeInsets.zero,
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(
+                        child: const Row(
+                          children: [
+                            Icon(FluentIcons.home_24_regular),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              "Set as home",
+                            ),
+                          ],
+                        ),
+                        onTap: () async {
+                          final SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          String? language = prefs.getString("language");
+                          language = languageList.indexOf(language!).toString();
+                          var x = await webViewController?.getUrl();
+                          await prefs.setString("home", x!.path);
+                        },
+                      ),
+                      PopupMenuItem(
+                        child: const Row(
+                          children: [
+                            Icon(Icons.restore),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              "Reset home",
+                            ),
+                          ],
+                        ),
+                        onTap: () async {
+                          final SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          String? language = prefs.getString("language");
+                          language = languageList.indexOf(language!).toString();
+                          Directory docDir =
+                              await getApplicationDocumentsDirectory();
+                          String indexPath = path.join(
+                              docDir.path, language, "book/index.html");
+
+                          await prefs.setString("last_url", indexPath);
+
+                          await prefs.setString("home", indexPath);
+                          webViewController!.loadUrl(
+                              urlRequest: URLRequest(url: WebUri(indexPath)));
+                        },
+                      ),
+                    ];
+                  },
                 ),
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) {
-                  return [];
-                },
               ),
             ],
           ),

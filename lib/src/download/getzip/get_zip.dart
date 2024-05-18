@@ -47,7 +47,7 @@ class _GetZipFileState extends State<GetZipFile> {
             destinationDir: Directory(path.join(docDir.path, widget.language)),
             onExtracting: (zipEntry, progress) {
               if (zipEntry.name.endsWith(".html")) {
-                htmlPath.add(zipEntry.name);
+                htmlPath.add(zipEntry.name.replaceAll("book/", ""));
               }
               setState(() {
                 toShow = Text(
