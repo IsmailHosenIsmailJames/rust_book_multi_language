@@ -41,10 +41,14 @@ class _GetZipFileState extends State<GetZipFile> {
         await prefs.setBool("isDownloaded", true);
 
         try {
+          List<String> htmlPath = [];
           await ZipFile.extractToDirectory(
             zipFile: toSaveFile,
             destinationDir: Directory(path.join(docDir.path, widget.language)),
             onExtracting: (zipEntry, progress) {
+              if (zipEntry.name.endsWith(".html")) {
+                htmlPath.add(zipEntry.name);
+              }
               setState(() {
                 toShow = Text(
                   "Extracting Compressed Files : ${progress.round()}%",
@@ -54,6 +58,7 @@ class _GetZipFileState extends State<GetZipFile> {
               return ZipFileOperation.includeItem;
             },
           );
+          await prefs.setStringList("htmls", htmlPath);
           await toSaveFile.delete();
           setState(() {
             toShow = const Text(

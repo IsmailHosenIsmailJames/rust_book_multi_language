@@ -87,6 +87,7 @@ class _InitRouteState extends State<InitRoute> {
       } else {
         Directory docDir = await getApplicationDocumentsDirectory();
         String? initUrl = prefs.getString("last_url");
+        List<String>? htmls = prefs.getStringList("htmls");
         if (initUrl != null) {
           Navigator.pushAndRemoveUntil(
               context,
@@ -94,6 +95,7 @@ class _InitRouteState extends State<InitRoute> {
                 builder: (context) => WebViewInApp(
                   initialRoute: initUrl,
                   language: language!,
+                  htmls: htmls ?? [],
                 ),
               ),
               (route) => false);
@@ -109,6 +111,7 @@ class _InitRouteState extends State<InitRoute> {
                 builder: (context) => WebViewInApp(
                   initialRoute: indexPath,
                   language: language!,
+                  htmls: htmls ?? [],
                 ),
               ),
               (route) => false);
