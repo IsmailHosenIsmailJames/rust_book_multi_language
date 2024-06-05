@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rust_book/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
 
@@ -312,6 +313,40 @@ class WebViewInAppState extends State<WebViewInApp> {
                               urlRequest: URLRequest(url: WebUri(indexPath)));
                         },
                       ),
+                      PopupMenuItem(
+                        child: const Row(
+                          children: [
+                            Icon(Icons.restart_alt_rounded),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              "Reset App",
+                            ),
+                          ],
+                        ),
+                        onTap: () async {
+                          final SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          String? language = prefs.getString("language");
+                          language = languageList.indexOf(language!).toString();
+                          Directory docDir =
+                              await getApplicationDocumentsDirectory();
+                          Directory directory =
+                              Directory(path.join(docDir.path, language));
+                          await deleteFolder(directory);
+                          await prefs.clear();
+
+                          Navigator.pushAndRemoveUntil(
+                            // ignore: use_build_context_synchronously
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const InitRoute(),
+                            ),
+                            (route) => true,
+                          );
+                        },
+                      ),
                     ];
                   },
                 ),
@@ -337,5 +372,26 @@ class WebViewInAppState extends State<WebViewInApp> {
         ),
       ),
     );
+  }
+
+  Future<void> deleteFolder(Directory directory) async {
+    if (await directory.exists()) {
+      // List all entities inside the directory (files, subdirectories)
+      final List<FileSystemEntity> entities = await directory.list().toList();
+
+      // Iterate through the list of entities
+      for (FileSystemEntity entity in entities) {
+        if (entity is Directory) {
+          // If the entity is a directory, call deleteFolder recursively
+          await deleteFolder(entity);
+        } else if (entity is File) {
+          // If the entity is a file, delete it
+          await entity.delete();
+        }
+      }
+
+      // After deleting all contents, delete the directory itself
+      await directory.delete();
+    }
   }
 }
