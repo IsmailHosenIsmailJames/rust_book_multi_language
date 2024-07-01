@@ -26,7 +26,7 @@ dependencies:
   flutter_inappwebview: ^6.0.0
   shared_preferences: ^2.2.2
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.3.8
+  flutter_native_splash: ^2.4.0
   connectivity_plus: ^6.0.3
   path: ^1.9.0
   searchfield: ^1.0.1
@@ -54,6 +54,10 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/img/logo.jpg"
+  web:
+    generate: true
+    image_path: "assets/img/logo.jpg"
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

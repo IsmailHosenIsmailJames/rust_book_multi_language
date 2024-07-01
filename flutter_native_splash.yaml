@@ -4,3 +4,4 @@ flutter_native_splash:
   image: assets/img/RustBookSimpleSplash.png
   color_dark: "#000000"
   image_dark: assets/img/RustBookSimpleSplashdark.png
+  web: true
