@@ -10,7 +10,7 @@ packages:
     source: hosted
     version: "2.0.2"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
@@ -129,6 +129,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+  dio:
+    dependency: "direct main"
+    description:
+      name: dio
+      sha256: "11e40df547d418cc0c4900a9318b26304e665da6fa4755399a9ff9efd09034b5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.4.3+1"
   dropdown_search:
     dependency: "direct main"
     description:
@@ -165,23 +173,15 @@ packages:
     dependency: "direct main"
     description:
       name: fluentui_system_icons
-      sha256: c4e3d0a9d7f7a32592f86f0821ccc81fbe125b9591f9cde05dbdfc2090a71cac
+      sha256: b4e0054ffa198073d2eef6009e79cb7ab770c049f553c39a67ae62523d7286fe
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.241"
+    version: "1.1.246"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_archive:
-    dependency: "direct main"
-    description:
-      name: flutter_archive
-      sha256: "5ca235f304c12bf468979235f400f79846d204169d715939e39197106f5fc970"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.0.3"
   flutter_driver:
     dependency: "direct dev"
     description: flutter
@@ -290,14 +290,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.15.4"
-  http:
-    dependency: "direct main"
-    description:
-      name: http
-      sha256: "761a297c042deedc1ffbb156d6e2af13886bb305c2a343a4d972504cd67dd938"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.1"
   http_parser:
     dependency: transitive
     description:
@@ -419,10 +411,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: "9c96da072b421e98183f9ea7464898428e764bc0ce5567f27ec8693442e72514"
+      sha256: bca87b0165ffd7cdb9cad8edd22d18d2201e886d9a9f19b4fb3452ea7df3a72a
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.5"
+    version: "2.2.6"
   path_provider_foundation:
     dependency: transitive
     description:
@@ -491,10 +483,10 @@ packages:
     dependency: "direct main"
     description:
       name: searchfield
-      sha256: c01e61706ad5bdc98db28abbe4b7810582155fd6a5eeb7556aefe601db95ed9b
+      sha256: b6cd3b685e931542d87a83765df6fb1885e1bca22668bfe3a159e43e009aa98c
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   shared_preferences:
     dependency: "direct main"
     description:

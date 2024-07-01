@@ -1,5 +1,5 @@
 name: rust_book
-description: Demonstrates how to use the flutter_inappwebview plugin.
+description: A Cross Platform Supported 16 language supported App thats help Rust learners to increase their learning speed.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -7,7 +7,7 @@ description: Demonstrates how to use the flutter_inappwebview plugin.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Read more about versioning at semver.org.
-version: 2.3.2+8
+version: 2.4.0+9
 
 publish_to: none
 
@@ -27,13 +27,13 @@ dependencies:
   shared_preferences: ^2.2.2
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.8
-  flutter_archive: ^6.0.3
   connectivity_plus: ^6.0.3
-  http: ^1.2.1
   path: ^1.9.0
   searchfield: ^1.0.1
   fluentui_system_icons: ^1.1.238
   dropdown_search: ^5.0.6
+  archive: ^3.6.1
+  dio: ^5.4.3+1
 
 dev_dependencies:
   flutter_test:

@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_archive/flutter_archive.dart';
-import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:rust_book/main.dart';
@@ -18,53 +18,51 @@ class GetZipFile extends StatefulWidget {
 }
 
 class _GetZipFileState extends State<GetZipFile> {
-  Widget toShow = const Text(
-    "Getting Start",
-    style: TextStyle(fontSize: 20),
-  );
+  String text = "Getting Start";
 
   void getZipFileDownloaded() async {
     try {
-      setState(() {
-        toShow = const Text(
-          "Downloading...\nCompressed File size 4.4 MB only",
-          style: TextStyle(fontSize: 20),
-        );
-      });
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final response = await http.get(Uri.parse(widget.urlOfZip));
-      if (response.statusCode == 200) {
-        final Directory docDir = await getApplicationDocumentsDirectory();
+      final Directory docDir = await getApplicationDocumentsDirectory();
+      String fullPath = path.join(docDir.path, "${widget.language}.zip");
+      Response response = await Dio().download(
+        widget.urlOfZip,
+        fullPath,
+        onReceiveProgress: (count, total) {
+          setState(() {
+            setState(() {
+              text = "Downloading (${((count / total) * 100).toInt()})%";
+            });
+          });
+        },
+      );
+
+      if (await File(fullPath).exists() && response.statusCode == 200) {
         String fullPath = path.join(docDir.path, "${widget.language}.zip");
         File toSaveFile = File(fullPath);
-        await toSaveFile.writeAsBytes(response.bodyBytes);
         await prefs.setBool("isDownloaded", true);
 
         try {
           List<String> htmlPath = [];
-          await ZipFile.extractToDirectory(
-            zipFile: toSaveFile,
-            destinationDir: Directory(path.join(docDir.path, widget.language)),
-            onExtracting: (zipEntry, progress) {
-              if (zipEntry.name.endsWith(".html")) {
-                htmlPath.add(zipEntry.name.replaceAll("book/", ""));
+          final inputStream = InputFileStream(fullPath);
+          final archive = ZipDecoder().decodeBuffer(inputStream);
+          for (var file in archive.files) {
+            if (file.isFile) {
+              if (file.name.endsWith(".html")) {
+                htmlPath.add(file.name.replaceAll("book/", ""));
               }
-              setState(() {
-                toShow = Text(
-                  "Extracting Compressed Files : ${progress.round()}%",
-                  style: const TextStyle(fontSize: 20),
-                );
-              });
-              return ZipFileOperation.includeItem;
-            },
-          );
+              final outputStream = OutputFileStream(
+                  Directory(path.join(docDir.path, widget.language, file.name))
+                      .path);
+              file.writeContent(outputStream);
+              await outputStream.close();
+            }
+          }
+
           await prefs.setStringList("htmls", htmlPath);
           await toSaveFile.delete();
           setState(() {
-            toShow = const Text(
-              "Awesome... Al is done",
-              style: TextStyle(fontSize: 20),
-            );
+            text = "Awesome... Al is done";
           });
           Navigator.pushAndRemoveUntil(
               // ignore: use_build_context_synchronously
@@ -131,7 +129,11 @@ class _GetZipFileState extends State<GetZipFile> {
           ),
         ),
         child: Center(
-          child: toShow,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 20),
+          ),
         ),
       ),
     );
