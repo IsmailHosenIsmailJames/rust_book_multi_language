@@ -1,0 +1,1 @@
+/home/ismail/dev/rust_book_multi_language/build/app/intermediates/cxx/Debug/6y85c246/obj/x86

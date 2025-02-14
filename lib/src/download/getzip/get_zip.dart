@@ -45,7 +45,7 @@ class _GetZipFileState extends State<GetZipFile> {
         try {
           List<String> htmlPath = [];
           final inputStream = InputFileStream(fullPath);
-          final archive = ZipDecoder().decodeBuffer(inputStream);
+          final archive = ZipDecoder().decodeStream(inputStream);
           for (var file in archive.files) {
             if (file.isFile) {
               if (file.name.endsWith(".html")) {
@@ -117,23 +117,11 @@ class _GetZipFileState extends State<GetZipFile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color.fromARGB(255, 103, 177, 140).withOpacity(0.6),
-              const Color.fromARGB(255, 136, 103, 255).withOpacity(0.6)
-            ],
-          ),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20),
-          ),
+      body: Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 20),
         ),
       ),
     );

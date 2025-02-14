@@ -238,6 +238,7 @@ class WebViewInAppState extends State<WebViewInApp> {
                   },
                   icon: const Icon(
                     Icons.arrow_back,
+                    size: 18,
                   ),
                 ),
               ),
@@ -253,6 +254,7 @@ class WebViewInAppState extends State<WebViewInApp> {
                   },
                   icon: const Icon(
                     Icons.arrow_forward,
+                    size: 18,
                   ),
                 ),
               ),
