@@ -61,7 +61,7 @@ class InitRoute extends StatefulWidget {
 class _InitRouteState extends State<InitRoute> {
   Future<void> autoRoute() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? language = prefs.getString("language");
+    String? language = prefs.getString('language');
     if (language == null) {
       FlutterNativeSplash.remove();
       Navigator.pushAndRemoveUntil(
@@ -72,8 +72,8 @@ class _InitRouteState extends State<InitRoute> {
           (route) => false);
     } else {
       language = languageList.indexOf(language).toString();
-      final isDownloaded = prefs.getBool("isDownloaded");
-      final link = prefs.getString("zipLink");
+      final isDownloaded = prefs.getBool('isDownloaded');
+      final link = prefs.getString('zipLink');
       FlutterNativeSplash.remove();
 
       if (isDownloaded == null) {
@@ -88,8 +88,8 @@ class _InitRouteState extends State<InitRoute> {
             (route) => false);
       } else {
         Directory docDir = await getApplicationDocumentsDirectory();
-        String? initUrl = prefs.getString("last_url");
-        List<String>? htmls = prefs.getStringList("htmls");
+        String? initUrl = prefs.getString('last_url');
+        List<String>? htmls = prefs.getStringList('htmls');
         if (initUrl != null) {
           Navigator.pushAndRemoveUntil(
               context,
@@ -103,9 +103,9 @@ class _InitRouteState extends State<InitRoute> {
               (route) => false);
         } else {
           String indexPath =
-              path.join(docDir.path, language, "book/index.html");
+              path.join(docDir.path, language, 'book/index.html');
           Uri uriPath = Uri.file(indexPath);
-          await prefs.setString("last_url", uriPath.path);
+          await prefs.setString('last_url', uriPath.path);
 
           Navigator.pushAndRemoveUntil(
               context,

@@ -36,7 +36,7 @@ class WebViewInAppState extends State<WebViewInApp> {
       isInspectable: kDebugMode,
       mediaPlaybackRequiresUserGesture: false,
       allowsInlineMediaPlayback: true,
-      iframeAllow: "camera; microphone",
+      iframeAllow: 'camera; microphone',
       iframeAllowFullscreen: true);
 
   PullToRefreshController? pullToRefreshController;
@@ -67,7 +67,7 @@ class WebViewInAppState extends State<WebViewInApp> {
         onLoadStart: (controller, url) async {
           final SharedPreferences prefs = await SharedPreferences.getInstance();
           if (url != null) {
-            await prefs.setString("last_url", url.toString());
+            await prefs.setString('last_url', url.toString());
           }
         },
         onPermissionRequest: (controller, request) async {
@@ -99,7 +99,7 @@ class WebViewInAppState extends State<WebViewInApp> {
       menuItems: [
         ContextMenuItem(
             id: 1,
-            title: "Special",
+            title: 'Special',
             action: () async {
               await webViewController?.clearFocus();
             })
@@ -153,13 +153,13 @@ class WebViewInAppState extends State<WebViewInApp> {
                 onPressed: () async {
                   final SharedPreferences prefs =
                       await SharedPreferences.getInstance();
-                  String? language = prefs.getString("language");
+                  String? language = prefs.getString('language');
                   language = languageList.indexOf(language!).toString();
                   Directory docDir = await getApplicationDocumentsDirectory();
-                  String? home = prefs.getString("home");
+                  String? home = prefs.getString('home');
                   if (home == null) {
                     String indexPath =
-                        path.join(docDir.path, language, "book/index.html");
+                        path.join(docDir.path, language, 'book/index.html');
 
                     webViewController?.loadUrl(
                       urlRequest: URLRequest(
@@ -188,6 +188,9 @@ class WebViewInAppState extends State<WebViewInApp> {
                       child: CupertinoSearchTextField(
                         controller: textEditingController,
                         focusNode: focusNode,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
                       ),
                     );
                   },
@@ -205,12 +208,12 @@ class WebViewInAppState extends State<WebViewInApp> {
                     final SharedPreferences prefs =
                         await SharedPreferences.getInstance();
                     Directory docDir = await getApplicationDocumentsDirectory();
-                    String? language = prefs.getString("language");
+                    String? language = prefs.getString('language');
                     language = languageList.indexOf(language!).toString();
                     String indexPath = path.join(
                       docDir.path,
                       language,
-                      "book",
+                      'book',
                       selection,
                     );
                     webViewController?.loadUrl(
@@ -273,17 +276,17 @@ class WebViewInAppState extends State<WebViewInApp> {
                               width: 10,
                             ),
                             Text(
-                              "Set as home",
+                              'Set as home',
                             ),
                           ],
                         ),
                         onTap: () async {
                           final SharedPreferences prefs =
                               await SharedPreferences.getInstance();
-                          String? language = prefs.getString("language");
+                          String? language = prefs.getString('language');
                           language = languageList.indexOf(language!).toString();
                           var x = await webViewController?.getUrl();
-                          await prefs.setString("home", x!.path);
+                          await prefs.setString('home', x!.path);
                         },
                       ),
                       PopupMenuItem(
@@ -294,23 +297,23 @@ class WebViewInAppState extends State<WebViewInApp> {
                               width: 10,
                             ),
                             Text(
-                              "Reset home",
+                              'Reset home',
                             ),
                           ],
                         ),
                         onTap: () async {
                           final SharedPreferences prefs =
                               await SharedPreferences.getInstance();
-                          String? language = prefs.getString("language");
+                          String? language = prefs.getString('language');
                           language = languageList.indexOf(language!).toString();
                           Directory docDir =
                               await getApplicationDocumentsDirectory();
                           String indexPath = path.join(
-                              docDir.path, language, "book/index.html");
+                              docDir.path, language, 'book/index.html');
 
-                          await prefs.setString("last_url", indexPath);
+                          await prefs.setString('last_url', indexPath);
 
-                          await prefs.setString("home", indexPath);
+                          await prefs.setString('home', indexPath);
                           webViewController!.loadUrl(
                               urlRequest: URLRequest(url: WebUri(indexPath)));
                         },
@@ -323,14 +326,14 @@ class WebViewInAppState extends State<WebViewInApp> {
                               width: 10,
                             ),
                             Text(
-                              "Reset App",
+                              'Reset App',
                             ),
                           ],
                         ),
                         onTap: () async {
                           final SharedPreferences prefs =
                               await SharedPreferences.getInstance();
-                          String? language = prefs.getString("language");
+                          String? language = prefs.getString('language');
                           language = languageList.indexOf(language!).toString();
                           Directory docDir =
                               await getApplicationDocumentsDirectory();

@@ -18,29 +18,29 @@ class GetZipFile extends StatefulWidget {
 }
 
 class _GetZipFileState extends State<GetZipFile> {
-  String text = "Getting Start";
+  String text = 'Getting Start';
 
   void getZipFileDownloaded() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final Directory docDir = await getApplicationDocumentsDirectory();
-      String fullPath = path.join(docDir.path, "${widget.language}.zip");
+      String fullPath = path.join(docDir.path, '${widget.language}.zip');
       Response response = await Dio().download(
         widget.urlOfZip,
         fullPath,
         onReceiveProgress: (count, total) {
           setState(() {
             setState(() {
-              text = "Downloading (${((count / total) * 100).toInt()})%";
+              text = 'Downloading (${((count / total) * 100).toInt()})%';
             });
           });
         },
       );
 
       if (await File(fullPath).exists() && response.statusCode == 200) {
-        String fullPath = path.join(docDir.path, "${widget.language}.zip");
+        String fullPath = path.join(docDir.path, '${widget.language}.zip');
         File toSaveFile = File(fullPath);
-        await prefs.setBool("isDownloaded", true);
+        await prefs.setBool('isDownloaded', true);
 
         try {
           List<String> htmlPath = [];
@@ -48,8 +48,8 @@ class _GetZipFileState extends State<GetZipFile> {
           final archive = ZipDecoder().decodeStream(inputStream);
           for (var file in archive.files) {
             if (file.isFile) {
-              if (file.name.endsWith(".html")) {
-                htmlPath.add(file.name.replaceAll("book/", ""));
+              if (file.name.endsWith('.html')) {
+                htmlPath.add(file.name.replaceAll('book/', ''));
               }
               final outputStream = OutputFileStream(
                   Directory(path.join(docDir.path, widget.language, file.name))
@@ -59,10 +59,10 @@ class _GetZipFileState extends State<GetZipFile> {
             }
           }
 
-          await prefs.setStringList("htmls", htmlPath);
+          await prefs.setStringList('htmls', htmlPath);
           await toSaveFile.delete();
           setState(() {
-            text = "Awesome... Al is done";
+            text = 'Awesome... Al is done';
           });
           Navigator.pushAndRemoveUntil(
               // ignore: use_build_context_synchronously
@@ -72,11 +72,11 @@ class _GetZipFileState extends State<GetZipFile> {
               ),
               (route) => false);
         } catch (e) {
-          showErrorDialog("Error occoured when extracting files");
+          showErrorDialog('Error occoured when extracting files');
         }
       }
     } catch (e) {
-      showErrorDialog("Error occoured when downloading files");
+      showErrorDialog('Error occoured when downloading files');
     }
   }
 
@@ -85,7 +85,7 @@ class _GetZipFileState extends State<GetZipFile> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Error Occoured"),
+          title: const Text('Error Occoured'),
           content: Text(errorText),
           actions: [
             TextButton(
@@ -93,14 +93,14 @@ class _GetZipFileState extends State<GetZipFile> {
                 Navigator.pop(context);
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancle"),
+              child: const Text('Cancle'),
             ),
             TextButton(
               onPressed: () {
                 getZipFileDownloaded();
                 Navigator.pop(context);
               },
-              child: const Text("Retry"),
+              child: const Text('Retry'),
             ),
           ],
         );

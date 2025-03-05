@@ -19,7 +19,7 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
       appBar: AppBar(
         title: const Center(
           child: Text(
-            "Select A Language",
+            'Select A Language',
             style: TextStyle(
               fontWeight: FontWeight.w500,
             ),
@@ -80,7 +80,7 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
                                         padding: EdgeInsets.all(8.0),
                                         child: Center(
                                           child: Text(
-                                            "Full translation not yet finished.\nSome content are still in English",
+                                            'Full translation not yet finished.\nSome content are still in English',
                                             style: TextStyle(fontSize: 16),
                                           ),
                                         ),
@@ -115,8 +115,8 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
               connectivityResult.contains(ConnectivityResult.bluetooth) ||
               connectivityResult.contains(ConnectivityResult.wifi) ||
               connectivityResult.contains(ConnectivityResult.vpn)) {
-            await prefs.setString("zipLink", url);
-            await prefs.setString("language", lan);
+            await prefs.setString('zipLink', url);
+            await prefs.setString('language', lan);
             Navigator.pushAndRemoveUntil(
                 // ignore: use_build_context_synchronously
                 context,
@@ -131,15 +131,15 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
               // ignore: use_build_context_synchronously
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text("Need internet connection."),
+                title: const Text('Need internet connection.'),
                 content: const Text(
-                    "This application will get download Rust Book in your selected language. So, in this step only, this application need internet connection. Please enable your internet connection"),
+                    'This application will get download Rust Book in your selected language. So, in this step only, this application need internet connection. Please enable your internet connection'),
                 actions: [
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text("OK"),
+                    child: const Text('OK'),
                   ),
                 ],
               ),
@@ -149,7 +149,7 @@ class _ChoiceLanguageState extends State<ChoiceLanguage> {
         label: const Row(
           children: [
             Text(
-              "NEXT ",
+              'NEXT ',
               style: TextStyle(fontSize: 16),
             ),
             Icon(
