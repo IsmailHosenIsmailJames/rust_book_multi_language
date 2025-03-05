@@ -1,0 +1,2 @@
+/home/ismail/dev/rust_book_multi_language/android/app/.cxx/Debug/4e4e5g5m/x86_64/CMakeFiles/edit_cache.dir
+/home/ismail/dev/rust_book_multi_language/android/app/.cxx/Debug/4e4e5g5m/x86_64/CMakeFiles/rebuild_cache.dir

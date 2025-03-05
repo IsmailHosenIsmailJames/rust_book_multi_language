@@ -1,0 +1,1 @@
+/home/ismail/dev/rust_book_multi_language/build/app/intermediates/cxx/Debug/4e4e5g5m/obj/arm64-v8a
