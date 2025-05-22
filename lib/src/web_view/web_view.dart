@@ -65,10 +65,41 @@ class WebViewInAppState extends State<WebViewInApp> {
           webViewController = controller;
         },
         onLoadStart: (controller, url) async {
+          // Original 'last_url' saving logic is moved to onLoadStop for better consistency with scroll saving.
+          // final SharedPreferences prefs = await SharedPreferences.getInstance();
+          // if (url != null) {
+          //   await prefs.setString('last_url', url.toString());
+          // }
+        },
+        onLoadStop: (controller, url) async {
           final SharedPreferences prefs = await SharedPreferences.getInstance();
           if (url != null) {
+            // Restore scroll position
+            String scrollKey = "scroll_pos_${widget.language}_${url.path}";
+            int? savedScrollY = prefs.getInt(scrollKey);
+            if (savedScrollY != null) {
+              Future.delayed(const Duration(milliseconds: 300), () {
+                controller.scrollTo(x: 0, y: savedScrollY, animated: false);
+              });
+            }
+
+            // Save the 'last_url'
             await prefs.setString('last_url', url.toString());
+
+            // Save the initial scroll position for the currently loaded page
+            // (it might be 0 or some other value if the page auto-scrolls on load)
+            int? currentScrollY = await controller.getScrollY();
+            if (currentScrollY != null) {
+              await prefs.setInt(scrollKey, currentScrollY);
+              // print("Saved initial scroll $currentScrollY for $scrollKey"); // For debugging
+            }
           }
+          // Note: The progress update logic originally in the prompt for onLoadStop
+          // is actually part of onProgressChanged in the existing code.
+          // We should not duplicate it here.
+        },
+        onUpdateVisitedHistory: (controller, url, androidIsReload) async {
+          await _saveCurrentScrollPosition();
         },
         onPermissionRequest: (controller, request) async {
           return PermissionResponse(
@@ -147,217 +178,162 @@ class WebViewInAppState extends State<WebViewInApp> {
         appBar: AppBar(
           titleSpacing: 0,
           toolbarHeight: 43,
-          title: Row(
-            children: [
-              IconButton(
+          leading: IconButton(
+            icon: const Icon(FluentIcons.home_24_regular),
+            onPressed: () async {
+              final SharedPreferences prefs = await SharedPreferences.getInstance();
+              // String? languagePref = prefs.getString('language'); // Not needed directly, widget.language is the index
+              Directory docDir = await getApplicationDocumentsDirectory();
+              String? home = prefs.getString('home');
+              if (home == null) {
+                // Use widget.language (which is the language index string) for path
+                String indexPath = path.join(docDir.path, widget.language, 'book/index.html');
+                webViewController?.loadUrl(urlRequest: URLRequest(url: WebUri(indexPath)));
+              } else {
+                webViewController?.loadUrl(urlRequest: URLRequest(url: WebUri(home)));
+              }
+            },
+          ),
+          title: Autocomplete<String>(
+            optionsMaxHeight: 380,
+            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+              return SizedBox(
+                height: 38, // Ensure consistent height
+                child: CupertinoSearchTextField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              );
+            },
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text == '') {
+                return const Iterable<String>.empty();
+              }
+              return widget.htmls.where((String option) {
+                return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+              });
+            },
+            onSelected: (String selection) async {
+              final Directory docDir = await getApplicationDocumentsDirectory();
+              // Use widget.language (which is the language index string) for path
+              String indexPath = path.join(
+                docDir.path,
+                widget.language,
+                'book',
+                selection,
+              );
+              webViewController?.loadUrl(
+                urlRequest: URLRequest(url: WebUri(indexPath)),
+              );
+            },
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.list_alt_outlined), // Or FluentIcons.bullet_list_24_regular
+              tooltip: 'Table of Contents',
+              onPressed: () {
+                _showTableOfContents(context);
+              },
+            ),
+            SizedBox(
+              height: 30,
+              width: 30,
+              child: IconButton(
+                padding: EdgeInsets.zero,
                 onPressed: () async {
-                  final SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  String? language = prefs.getString('language');
-                  language = languageList.indexOf(language!).toString();
-                  Directory docDir = await getApplicationDocumentsDirectory();
-                  String? home = prefs.getString('home');
-                  if (home == null) {
-                    String indexPath =
-                        path.join(docDir.path, language, 'book/index.html');
-
-                    webViewController?.loadUrl(
-                      urlRequest: URLRequest(
-                        url: WebUri(indexPath),
-                      ),
-                    );
-                  } else {
-                    webViewController?.loadUrl(
-                      urlRequest: URLRequest(
-                        url: WebUri(home),
-                      ),
-                    );
+                  if (await webViewController!.canGoBack()) {
+                    webViewController!.goBack();
                   }
                 },
-                icon: const Icon(
-                  FluentIcons.home_24_regular,
-                ),
+                icon: const Icon(Icons.arrow_back, size: 18),
               ),
-              Expanded(
-                child: Autocomplete<String>(
-                  optionsMaxHeight: 380,
-                  fieldViewBuilder: (context, textEditingController, focusNode,
-                      onFieldSubmitted) {
-                    return SizedBox(
-                      height: 38,
-                      child: CupertinoSearchTextField(
-                        controller: textEditingController,
-                        focusNode: focusNode,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                        ),
+            ),
+            SizedBox(
+              height: 30,
+              width: 30,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: () async {
+                  if (await webViewController!.canGoForward()) {
+                    webViewController!.goForward();
+                  }
+                },
+                icon: const Icon(Icons.arrow_forward, size: 18),
+              ),
+            ),
+            SizedBox(
+              height: 30,
+              width: 40, // Retain original width for PopupMenuButton
+              child: PopupMenuButton(
+                padding: EdgeInsets.zero,
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem(
+                      child: const Row(
+                        children: [
+                          Icon(FluentIcons.home_24_regular),
+                          SizedBox(width: 10),
+                          Text('Set as home'),
+                        ],
                       ),
-                    );
-                  },
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text == '') {
-                      return const Iterable<String>.empty();
-                    }
-                    return widget.htmls.where((String option) {
-                      return option
-                          .toLowerCase()
-                          .contains(textEditingValue.text.toLowerCase());
-                    });
-                  },
-                  onSelected: (String selection) async {
-                    final SharedPreferences prefs =
-                        await SharedPreferences.getInstance();
-                    Directory docDir = await getApplicationDocumentsDirectory();
-                    String? language = prefs.getString('language');
-                    language = languageList.indexOf(language!).toString();
-                    String indexPath = path.join(
-                      docDir.path,
-                      language,
-                      'book',
-                      selection,
-                    );
-                    webViewController?.loadUrl(
-                      urlRequest: URLRequest(
-                        url: WebUri(
-                          indexPath,
-                        ),
+                      onTap: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        // var x = await webViewController?.getUrl(); // Not language, but current URL path
+                        // await prefs.setString('home', x!.path);
+                        WebUri? currentUrl = await webViewController?.getUrl();
+                        if (currentUrl != null) {
+                          await prefs.setString('home', currentUrl.toString());
+                        }
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: const Row(
+                        children: [
+                          Icon(Icons.restore),
+                          SizedBox(width: 10),
+                          Text('Reset home'),
+                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(
-                width: 5,
-              ),
-              SizedBox(
-                height: 30,
-                width: 30,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () async {
-                    if (await webViewController!.canGoBack()) {
-                      webViewController!.goBack();
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    size: 18,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 30,
-                width: 30,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () async {
-                    if (await webViewController!.canGoForward()) {
-                      webViewController!.goForward();
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.arrow_forward,
-                    size: 18,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 30,
-                width: 40,
-                child: PopupMenuButton(
-                  padding: EdgeInsets.zero,
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem(
-                        child: const Row(
-                          children: [
-                            Icon(FluentIcons.home_24_regular),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              'Set as home',
-                            ),
-                          ],
-                        ),
-                        onTap: () async {
-                          final SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          String? language = prefs.getString('language');
-                          language = languageList.indexOf(language!).toString();
-                          var x = await webViewController?.getUrl();
-                          await prefs.setString('home', x!.path);
-                        },
+                      onTap: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        Directory docDir = await getApplicationDocumentsDirectory();
+                        // Use widget.language for path
+                        String indexPath = path.join(docDir.path, widget.language, 'book/index.html');
+                        await prefs.setString('last_url', indexPath); // Also reset last_url to home
+                        await prefs.setString('home', indexPath);
+                        webViewController!.loadUrl(urlRequest: URLRequest(url: WebUri(indexPath)));
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: const Row(
+                        children: [
+                          Icon(Icons.restart_alt_rounded),
+                          SizedBox(width: 10),
+                          Text('Reset App'),
+                        ],
                       ),
-                      PopupMenuItem(
-                        child: const Row(
-                          children: [
-                            Icon(Icons.restore),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              'Reset home',
-                            ),
-                          ],
-                        ),
-                        onTap: () async {
-                          final SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          String? language = prefs.getString('language');
-                          language = languageList.indexOf(language!).toString();
-                          Directory docDir =
-                              await getApplicationDocumentsDirectory();
-                          String indexPath = path.join(
-                              docDir.path, language, 'book/index.html');
+                      onTap: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        Directory docDir = await getApplicationDocumentsDirectory();
+                        // Use widget.language for path
+                        Directory directory = Directory(path.join(docDir.path, widget.language));
+                        await deleteFolder(directory); // Ensure deleteFolder is accessible or defined in this scope
+                        await prefs.clear();
 
-                          await prefs.setString('last_url', indexPath);
-
-                          await prefs.setString('home', indexPath);
-                          webViewController!.loadUrl(
-                              urlRequest: URLRequest(url: WebUri(indexPath)));
-                        },
-                      ),
-                      PopupMenuItem(
-                        child: const Row(
-                          children: [
-                            Icon(Icons.restart_alt_rounded),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              'Reset App',
-                            ),
-                          ],
-                        ),
-                        onTap: () async {
-                          final SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          String? language = prefs.getString('language');
-                          language = languageList.indexOf(language!).toString();
-                          Directory docDir =
-                              await getApplicationDocumentsDirectory();
-                          Directory directory =
-                              Directory(path.join(docDir.path, language));
-                          await deleteFolder(directory);
-                          await prefs.clear();
-
-                          Navigator.pushAndRemoveUntil(
-                            // ignore: use_build_context_synchronously
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const InitRoute(),
-                            ),
-                            (route) => true,
-                          );
-                        },
-                      ),
-                    ];
-                  },
-                ),
+                        Navigator.pushAndRemoveUntil(
+                          // ignore: use_build_context_synchronously
+                          context,
+                          MaterialPageRoute(builder: (context) => const InitRoute()), // Ensure InitRoute is imported
+                          (route) => true,
+                        );
+                      },
+                    ),
+                  ];
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         body: SafeArea(
           child: Column(
@@ -398,5 +374,99 @@ class WebViewInAppState extends State<WebViewInApp> {
       // After deleting all contents, delete the directory itself
       await directory.delete();
     }
+  }
+
+  // New method to save current scroll position
+  Future<void> _saveCurrentScrollPosition() async {
+    if (webViewController != null) {
+      WebUri? currentWebUri = await webViewController!.getUrl();
+      int? scrollY = await webViewController!.getScrollY();
+      if (currentWebUri != null && scrollY != null) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        String key = "scroll_pos_${widget.language}_${currentWebUri.path}";
+        await prefs.setInt(key, scrollY);
+        // print("Saved scroll $scrollY for $key"); // For debugging
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Save the final scroll position before the widget is disposed
+    _saveCurrentScrollPosition();
+    super.dispose();
+  }
+
+  // Function to format display names for ToC
+  String _formatTocEntryName(String htmlFileName) {
+    String name = htmlFileName;
+    // Remove .html extension
+    if (name.endsWith('.html')) {
+      name = name.substring(0, name.length - '.html'.length);
+    }
+    // Get the last part of the path (filename without parent directories)
+    name = name.split('/').last;
+    // Replace underscores and hyphens with spaces
+    name = name.replaceAll('_', ' ').replaceAll('-', ' ');
+    // Capitalize first letter of each word
+    name = name.split(' ').map((word) {
+      if (word.isEmpty) return '';
+      // Ensure word is not just spaces before trying to access characters
+      if (word.trim().isEmpty) return '';
+      return word[0].toUpperCase() + word.substring(1);
+    }).join(' ');
+    // Specific rule for 'Print' as per example, could be generalized
+    if (name == 'Print') {
+      // Keep it simple as "Print Page" or just "Print" if no other context
+      // For now, let's assume if it's 'print.html' it becomes 'Print'
+    }
+    return name;
+  }
+
+  void _showTableOfContents(BuildContext context) async {
+    final Directory docDir = await getApplicationDocumentsDirectory();
+    // widget.language is already the language index as a string, e.g., "0", "1", etc.
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Table of Contents'),
+          content: SizedBox(
+            width: double.maxFinite, // Use as much width as possible for the dialog
+            child: ListView.builder(
+              itemCount: widget.htmls.length,
+              itemBuilder: (BuildContext listContext, int index) {
+                String htmlFile = widget.htmls[index]; // e.g., "chapter_1.html" or "appendix/foo.html"
+                String displayName = _formatTocEntryName(htmlFile);
+                return ListTile(
+                  title: Text(displayName),
+                  onTap: () async {
+                    String filePath = path.join(
+                      docDir.path,
+                      widget.language, // This is the language index string
+                      'book',
+                      htmlFile, // This is the relative path from 'book/'
+                    );
+                    webViewController?.loadUrl(
+                      urlRequest: URLRequest(url: WebUri(filePath)), // File URI
+                    );
+                    Navigator.of(dialogContext).pop(); // Close the dialog
+                  },
+                );
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

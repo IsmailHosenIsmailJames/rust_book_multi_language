@@ -120,4 +120,5 @@ List<String> languageList = [
   '正體中文',
   '简体中文',
   '한국어',
+  '日本語',
 ];
