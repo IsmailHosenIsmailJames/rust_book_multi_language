@@ -7,7 +7,7 @@ description: A Cross Platform Supported 16 language supported App thats help Rus
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Read more about versioning at semver.org.
-version: 2.6.1+12
+version: 2.6.2+13
 
 publish_to: none
 
@@ -47,7 +47,7 @@ dev_dependencies:
 #    git:
 #      url: https://github.com/flutter/plugins.git
 #      path: packages/integration_test
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 
 flutter_launcher_icons:
